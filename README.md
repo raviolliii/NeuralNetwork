@@ -3,7 +3,7 @@
 A super simple neural network that can recognize hand written digits 
 (from the MNIST handwritten digit database).
 
-Current Accuracy: ** 96.5% ** (given specific set of parameters)
+Current Accuracy: ** 97.82% ** (given specific set of parameters)
 
 ## Usage
 
