@@ -48,30 +48,27 @@ class NeuralNet:
 		_output = output_layer.index(max(output_layer))
 		return _output
 
-	def train(self, epochs, total, batch_size):
-		images = mnist.read_images("training-images-ubyte", total)
-		labels = mnist.read_labels("training-labels-ubyte", total)
+	def train(self, data_set, batch_size, epochs):
 		phrase = f'Epoch: [0/{epochs}]'
+		total_size = len(data_set)
 		for e in range(epochs):
-			for i in range(0, total, batch_size):
-				images_subset = images[i:i + batch_size]
-				labels_subset = labels[i:i + batch_size]
-				self.train_batch(images_subset, labels_subset, batch_size)
+			for i in range(0, total_size, batch_size):
+				data_subset = data_set[i:i + batch_size]
+				self.train_batch(data_subset, batch_size)
 			# print progress
 			print("\r" * len(phrase), end="")
 			phrase = f'Epoch: [{e + 1}/{epochs}]'
 			print(phrase, end="")
 		print()
 
-	def train_batch(self, images, labels, batch_size):
+	def train_batch(self, data_set, batch_size):
 		delta_weights = [np.zeros(w.shape) for w in self.weights]
 		delta_biases = [np.zeros(b.shape) for b in self.biases]
-		# feed images and labels
-		for image, label in zip(images, labels):
-			expected_output = [int(i == label) for i in range(len(self.layers[-1]))]
-			self.feed(image)
+		# feed x (input values) and y (expected values) from data_set
+		for x, y in data_set:
+			self.feed(x)
 			# backpropogate and sum all deltas
-			d_weights, d_biases = self.backpropogate(expected_output)
+			d_weights, d_biases = self.backpropogate(y)
 			delta_weights = [total + dw for total, dw in zip(delta_weights, d_weights)]
 			delta_biases = [total + db for total, db in zip(delta_biases, d_biases)]
 		# adjust all weights/biases with average of deltas
