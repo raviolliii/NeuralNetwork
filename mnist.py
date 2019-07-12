@@ -9,8 +9,8 @@ def create_image(pixels, name):
 	image = Image.fromarray(data, "RGB")
 	image.save(name)
 
-def save_images(count):
-	with open("images-ubyte", "rb") as file:
+def save_images(file_path, count, output_path_format):
+	with open(file_path, "rb") as file:
 		metadata = file.read(8)
 		width = btoi(file.read(4))
 		height = btoi(file.read(4))
@@ -21,9 +21,9 @@ def save_images(count):
 					pixel = file.read(1)
 					grayscale = btoi(pixel)
 					pixels[w][h] = (grayscale, grayscale, grayscale)
-			create_image(pixels, f'tests/test{i}.png')
+			create_image(pixels, output_path_format.format(i))
 
-def read_images(file_path, count):
+def load_images(file_path, count):
 	images = []
 	with open(file_path, "rb") as file:
 		metadata = file.read(8)
@@ -34,7 +34,7 @@ def read_images(file_path, count):
 			images.append(image)
 	return images
 
-def read_labels(file_path, count):
+def load_labels(file_path, count):
 	labels = []
 	with open(file_path, "rb") as file:
 		metadata = file.read(8)
@@ -43,12 +43,14 @@ def read_labels(file_path, count):
 			labels.append(label)
 	return labels
 
-def read_labels_gen():
-	for i in range(1000000):
-		yield i
+def load_data(type, count):
+	images = load_images(f'{type}-images-ubyte', count)
+	labels = load_labels(f'{type}-labels-ubyte', count)
+	data = []
+	for image, label in zip(images, labels):
+		y_values = [int(i == label) for i in range(10)]
+		data.append((image, y_values))
+	return data
 
 if __name__ == "__main__":
-	for i in range(1000000):
-		print(i)
-	for i in read_labels_gen():
-		print(i)
+	pass
