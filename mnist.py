@@ -44,8 +44,8 @@ def load_labels(file_path, count):
 	return labels
 
 def load_data(type, count):
-	images = load_images(f'{type}-images-ubyte', count)
-	labels = load_labels(f'{type}-labels-ubyte', count)
+	images = load_images(f'data/{type}-images-ubyte', count)
+	labels = load_labels(f'data/{type}-labels-ubyte', count)
 	data = []
 	for image, label in zip(images, labels):
 		y_values = [int(i == label) for i in range(10)]
