@@ -92,25 +92,23 @@ class NeuralNet:
         the learning rate before udpating all weights and biases
         in the network
         """
-        delta_weights = [np.zeros(w.shape) for w in self.weights]
-        delta_biases = [np.zeros(b.shape) for b in self.biases]
+        delta_weights = matrix([np.zeros(w.shape) for w in self.weights])
+        delta_biases = matrix([np.zeros(b.shape) for b in self.biases])
         # feed x (input values) and y (expected values) from data_set
         for x, y in data_set:
             self.feed(x)
             # backpropogate and add up all deltas
             d_weights, d_biases = self.backpropogate(y)
-            delta_weights = [total + dw for total, dw in zip(delta_weights, d_weights)]
-            delta_biases = [total + db for total, db in zip(delta_biases, d_biases)]
+            delta_weights += d_weights
+            delta_biases += d_biases
 
         # adjust all network weights/biases with average of deltas
         const = self.learning_rate / batch_size
-        dw_avg = [const * total for total in delta_weights]
-        db_avg = [const * total for total in delta_biases]
-        new_weights = [curr - delta for curr, delta in zip(self.weights, dw_avg)]
-        new_biases = [curr - delta for curr, delta in zip(self.biases, db_avg)]
+        dw_avg = (self.learning_rate / batch_size) * delta_weights
+        db_avg = (self.learning_rate / batch_size) * delta_biases
         # update all weights/biases
-        self.weights = matrix(new_weights)
-        self.biases = matrix(new_biases)
+        self.weights -= dw_avg
+        self.biases -= db_avg
 
     def feed(self, input_values):
         """ 
@@ -118,22 +116,16 @@ class NeuralNet:
         output layer, using the input layer (input values)
         """
         self.layers[0] = matrix(input_values)
-        z_values = [np.zeros(l.shape) for l in self.layers]
+        self.z_values = [np.zeros(l.shape) for l in self.layers]
         for i, layer in enumerate(self.layers[1:], 1):
             weights = self.weights[i - 1]
             biases = self.biases[i - 1]
             a = self.layers[i - 1]
-            # each neuron's activation is a weighted sum + its bias
-            for j, neuron in enumerate(layer):
-                W = weights[j]
-                b = biases[j]
-                z = (W @ a) + b
-                activation = sigmoid(z)
-                z_values[i][j] = z
-                self.layers[i][j] = activation
-        # store the z values (value before sigmoid) for backpropagation
-        self.z_values = matrix(z_values)
-
+            # each layers's activations is a weighted sum + its bias
+            z_values = (weights @ a) + biases
+            self.z_values[i] = z_values
+            self.layers[i] = sigmoid(z_values)
+            
     def backpropogate(self, y_values):
         """
         Learning process of the network.
@@ -154,7 +146,7 @@ class NeuralNet:
 
         # propogate error through hidden layers
         for l in range(self.nlayers - 2, 0, -1):
-            weights = self.weights[l] # W: l - 1
+            weights = self.weights[l]
             weighted_delta = weights.T @ delta
             z_values = matrix(self.z_values[l])
             sig_vector = sigmoid_derivative(z_values)
